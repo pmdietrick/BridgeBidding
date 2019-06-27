@@ -28,7 +28,30 @@ def genHands():
         
     south = Bidder(s)
     north = Bidder(n)
+    
+    auction(south, north)
 
+
+def auction(south, north):
+    bid = [-1, 0]
+    player = south
+    waiting = north
+    
+    #Both players get a chance to bid, then bidding continues until pass
+    while bid != "pass" or player.bids == []:
+        
+        bid = player.bid()
+        waiting.infer(bid)
+        
+        if player == south:
+            player = north
+            waiting = south
+        else:
+            player = south
+            waiting = north
+        
+        
+        
 
 class Bidder(object):
     
@@ -38,32 +61,38 @@ class Bidder(object):
         self.NT_OPEN = True
         self.pts = self.points()
         self.pBids = []
-        
+        self.bids = []
+    
+    def infer(self, bid):
+        self.pBids.append(bid)
+        #todo: update pRange according to the constraints of the bid
+    
     def bid(self):
         hcp = self.hand.hcp
         SUITS = ['C', 'D', 'H', 'S']
-        bid = [0,0]
+        bid = "pass"
         
         
         #opening bids
         if self.pBids == []:
             if self.pts >= 23:
                 bid = [2, 'C']
-            
             elif hcp >=15 and hcp <= 17 and self.NT_OPEN:
                 bid = [1, 'NT']
-            
+            elif hcp >=20 and hcp <= 22 and self.NT_OPEN:
+                bid = [2, 'NT']
             elif hcp >=11 and hcp <= 21:
-                if self.hand.sLengths['D'] >= self.hand.shape['C']:
+                if self.hand.sLengths['S'] >= 5 and self.hand.sLengths['H'] <= self.hand.sLengths['S']:
+                    bid = [1, 'S']
+                elif self.hand.sLengths['H'] >= 5:
+                    bid = [1, 'H']
+                elif self.hand.sLengths['D'] >= self.hand.shape['C']:
                     bid = [1, 'D']
                 else:
                     bid = [1, 'C']
                     
-                for suit in SUITS:
-                    if self.hand.sLengths[suit] >= 5:
-                        if not (suit == 'S' and self.hand.sLengths['H'] > self.hand.sLengths['S']):
-                            bid = [1, suit]
-            
+        
+        self.bids.append(bid)
         return bid
     
     def points(self):
@@ -73,9 +102,7 @@ class Bidder(object):
         for suit in SUITS:
             if self.hand.sLengths[suit] <= 3:
                 self.pts += 3 - self.hand.sLengths[suit]
-            if self.hand.sLengths[suit] <= 1:
-                self.NT_OPEN = False
-            if self.hand.sLengths[suit] >= 6:
+            if self.hand.sLengths[suit] <= 1 or self.hand.sLengths[suit] >= 6:
                 self.NT_OPEN = False
     
 
