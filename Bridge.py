@@ -20,7 +20,8 @@ def newGame():
         for i in range(13):
             c = d1.deal()
             p.add(c)
-        print(p.showHand())
+        #print(p.showHand())
+        print(p.label)
         p.HCP()
         p.suitLengths()
         
@@ -140,15 +141,16 @@ class Bidder(object):
         bidOrder = ['C', 'D', 'H', 'S', 'NT']
         longSuit = 'NT'
         tricks = lastbid[0] + offset
+        TARGET = 8
         
         for suit in self.pLengths:
             total_len = self.hand.sLengths[suit] + self.pLengths[suit][0]
-            if self.pLengths[suit][0] >= 5 and total_len >= 8:
+            if self.pLengths[suit][0] >= 5 and total_len >= TARGET:
                 longSuit = suit
                 
         if longSuit == 'NT':
             for suit in self.pLengths:
-                if self.hand.sLengths[suit] >= 5 and self.pLengths[suit][1] >=3:
+                if self.hand.sLengths[suit] >= 5 and self.pLengths[suit][1] + self.hand.sLengths[suit] >= TARGET:
                     longSuit = suit
         
         #bid higher tricks unless suit is higher; bids must increase
