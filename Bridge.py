@@ -3,15 +3,19 @@ import random
 def main():
     dataX = []
     dataY = []
-    iterations = 10
+    iterations = 10000
     for i in range(iterations):
         rowX, rowY = newGame()
         dataX.append(rowX)
         dataY.append(rowY)
         
-    print(dataX)
-    print()
-    print(dataY)
+    with open('bids.txt', 'w') as filehandle:  
+        filehandle.writelines("%s\n" % bid for bid in dataX)
+    filehandle.close()
+    
+    with open('features.txt', 'w') as filehandle:  
+        filehandle.writelines("%s\n" % feature for feature in dataY)
+    filehandle.close()
     
     
 def newGame():
