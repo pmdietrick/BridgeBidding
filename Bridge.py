@@ -1,7 +1,18 @@
 import random
 
 def main():
-    newGame()
+    dataX = []
+    dataY = []
+    iterations = 10
+    for i in range(iterations):
+        rowX, rowY = newGame()
+        dataX.append(rowX)
+        dataY.append(rowY)
+        
+    print(dataX)
+    print()
+    print(dataY)
+    
     
 def newGame():
     print("\n Creating a deck of cards and shuffling it...\n")
@@ -25,10 +36,19 @@ def newGame():
         p.HCP()
         p.suitLengths()
         
-    south = Bidder(s, "South")
-    north = Bidder(n, "North")
+    south = Bidder(s, 0)
+    north = Bidder(n, 1)
     
-    auction(south, north)
+    bids = auction(south, north)
+    
+    while len(bids) < 10:
+        bids.append([0, 'P'])
+    while len(bids) > 10:
+        bids.pop()
+        
+    features = [south.hand.hcp, south.hand.clubs, south.hand.diamonds, south.hand.hearts, south.hand.spades]
+    
+    return bids, features
 
 
 def auction(south, north):
@@ -36,13 +56,16 @@ def auction(south, north):
     lastBid = [-1, 0]
     player = south
     waiting = north
+    bids = []
     
     #Both players get a chance to bid, then bidding continues until pass
-    while bid != "pass" or player.bids == []:
+    while bid != [0, 'P'] or player.bids == []:
         
         bid = player.bid(lastBid)
         print(bid)
         waiting.infer(bid)
+        
+        bids.append(bid)
         
         lastBid = bid
         
@@ -53,7 +76,7 @@ def auction(south, north):
             player = south
             waiting = north
         
-        
+    return bids
         
 
 class Bidder(object):
@@ -82,7 +105,7 @@ class Bidder(object):
         hcp = self.hand.hcp
         hcpMin = self.getHcpMin()
         SUITS = ['C', 'D', 'H', 'S']
-        bid = "pass"
+        bid = [0, 'P']
         
         
         #opening bids
@@ -130,7 +153,7 @@ class Bidder(object):
                 self.bids.append(bid)
                 return bid
             else:
-                bid = "pass"
+                bid = [0, 'P']
                 self.bids.append(bid)
                 return bid
             
@@ -190,7 +213,7 @@ class Bidder(object):
     def nonpassBids(self, bids):
         count = 0
         for bid in bids:
-            if bid != "pass":
+            if bid != [0, 'P']:
                 count += 1
         return count
     
