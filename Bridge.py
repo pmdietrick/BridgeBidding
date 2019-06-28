@@ -1,9 +1,9 @@
 import random
 
 def main():
-    genHands()
+    newGame()
     
-def genHands():
+def newGame():
     print("\n Creating a deck of cards and shuffling it...\n")
     
     d1 = Deck()
@@ -14,7 +14,7 @@ def genHands():
     e = Hand(label = "east")
     w = Hand(label = "west")
     
-    seats = [s,n,e,w]
+    seats = [e,w,s,n]
     
     for p in seats:
         for i in range(13):
@@ -85,7 +85,7 @@ class Bidder(object):
         
         
         #opening bids
-        if self.nonpassBids(self.bids) == 0:
+        if self.nonpassBids(self.pBids) == 0 and self.nonpassBids(self.bids) == 0:
             if hcp >=15 and hcp <= 17 and self.NT_OPEN:
                 bid = [1, 'NT']
             elif hcp >=20 and hcp <= 22 and self.NT_OPEN:
@@ -111,6 +111,7 @@ class Bidder(object):
         #responses
         else:
             bid = self.respond(lastBid)
+            maxBid = 1
             if hcpMin >= 17 and hcpMin <= 19:
                 maxBid = 2
             elif hcpMin >= 20 and hcpMin <= 22:
@@ -158,7 +159,7 @@ class Bidder(object):
             if suit == lastbid[1]:
                 break
                 
-        return [tricks, suit]
+        return [tricks, longSuit]
     
     def getOpenSuit(self):
         if self.hand.sLengths['S'] >= 5 and self.hand.sLengths['H'] <= self.hand.sLengths['S']:
@@ -189,7 +190,7 @@ class Bidder(object):
         for bid in bids:
             if bid != "pass":
                 count += 1
-        return 0
+        return count
     
 
 class Hand(object):
@@ -209,7 +210,6 @@ class Hand(object):
         self.hearts = 0
         self.diamonds = 0
         self.clubs = 0
-        self.shape = [self.clubs, self.diamonds, self.hearts, self.spades]
         self.sLengths = {'C' : self.clubs, 'D' : self.diamonds, 'H' : self.hearts, 'S' : self.spades}
 
     #------------------------------------------------------------
@@ -233,8 +233,6 @@ class Hand(object):
 
     def showHand(self):
         
-        """ Print out contents of the Hand."""
-
         print(self.label + "'s Cards:")
         for suit in Card.SUITS:
             card_string = []
@@ -249,7 +247,7 @@ class Hand(object):
             if c.rank() >= 11:
                 hcp += c.rank() - 10
                 
-        print(hcp)
+        print('HCP: ', hcp)
         self.hcp = hcp
         
     def suitLengths(self):
@@ -257,21 +255,25 @@ class Hand(object):
         h = 0
         d = 0
         c = 0
-        suits = [c,d,h,s]
         
         for card in self.cards:
-            if card.suit() == 'c':
+            if card.suit() == 'C':
                 c += 1
-            if card.suit() == 'd':
+            if card.suit() == 'D':
                 d += 1
-            if card.suit() == 'h':
+            if card.suit() == 'H':
                 h += 1
-            if card.suit() == 's':
+            if card.suit() == 'S':
                 s += 1
+                
+        print('Suit lengths: ', c, d, h, s)
+        print()
+        
         self.spades = s
         self.hearts = h
         self.diamonds = d
         self.clubs = c
+        self.sLengths = {'C' : self.clubs, 'D' : self.diamonds, 'H' : self.hearts, 'S' : self.spades}
         
 
 class Card(object):
