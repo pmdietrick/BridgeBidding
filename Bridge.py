@@ -115,9 +115,9 @@ class Bidder(object):
         #opening bids
         if self.nonpassBids(self.pBids) == 0 and self.nonpassBids(self.bids) == 0:
             if hcp >=15 and hcp <= 17 and self.NT_OPEN:
-                bid = [1, 'NT']
+                bid = [1, 'N']
             elif hcp >=20 and hcp <= 22 and self.NT_OPEN:
-                bid = [2, 'NT']
+                bid = [2, 'N']
             elif hcp >= 20:
                 tricks = 2
                 suit = self.getOpenSuit()
@@ -165,8 +165,8 @@ class Bidder(object):
         return bid
     
     def respond(self, lastbid, offset = 0):
-        bidOrder = ['C', 'D', 'H', 'S', 'NT']
-        longSuit = 'NT'
+        bidOrder = ['C', 'D', 'H', 'S', 'N']
+        longSuit = 'N'
         tricks = lastbid[0] + offset
         TARGET = 8
         
@@ -175,7 +175,7 @@ class Bidder(object):
             if self.pLengths[suit][0] >= 5 and total_len >= TARGET:
                 longSuit = suit
                 
-        if longSuit == 'NT':
+        if longSuit == 'N':
             for suit in self.pLengths:
                 if self.hand.sLengths[suit] >= 5 and self.pLengths[suit][1] + self.hand.sLengths[suit] >= TARGET:
                     longSuit = suit
