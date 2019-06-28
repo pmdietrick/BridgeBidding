@@ -1,6 +1,4 @@
 import random
-from random import choice
-from random import randrange
 
 def main():
     genHands()
@@ -26,22 +24,26 @@ def genHands():
         p.HCP()
         p.suitLengths()
         
-    south = Bidder(s)
-    north = Bidder(n)
+    south = Bidder(s, "South")
+    north = Bidder(n, "North")
     
     auction(south, north)
 
 
 def auction(south, north):
     bid = [-1, 0]
+    lastBid = [-1, 0]
     player = south
     waiting = north
     
     #Both players get a chance to bid, then bidding continues until pass
     while bid != "pass" or player.bids == []:
         
-        bid = player.bid()
+        bid = player.bid(lastBid)
+        print(bid)
         waiting.infer(bid)
+        
+        lastBid = bid
         
         if player == south:
             player = north
@@ -55,7 +57,8 @@ def auction(south, north):
 
 class Bidder(object):
     
-    def __init__(self, hand):
+    def __init__(self, hand, name):
+        self.name = name
         self.hand = hand
         #hcp range
         self.pRange = [0, 40 - self.hand.hcp]
@@ -82,7 +85,7 @@ class Bidder(object):
         
         
         #opening bids
-        if self.nonpassBids(self.pBids) == 0:
+        if self.nonpassBids(self.bids) == 0:
             if hcp >=15 and hcp <= 17 and self.NT_OPEN:
                 bid = [1, 'NT']
             elif hcp >=20 and hcp <= 22 and self.NT_OPEN:
@@ -100,9 +103,9 @@ class Bidder(object):
         #first responses
         elif self.nonpassBids(self.bids) == 0:
             if hcp >= 12 and hcp <= 16:
-                bid = self.jump(lastBid)
+                bid = self.respond(lastBid, 1)
             elif hcp >= 17:
-                bid = self.dbljump(lastBid)
+                bid = self.respond(lastBid, 2)
             elif hcp >= 5 or hcpMin >= 22:
                 bid = self.respond(lastBid)
         #responses
@@ -132,15 +135,37 @@ class Bidder(object):
         self.bids.append(bid)
         return bid
     
-    def respond(lastbid):
+    def respond(self, lastbid, offset = 0):
         bidOrder = ['C', 'D', 'H', 'S', 'NT']
+        longSuit = 'NT'
+        tricks = lastbid[0] + offset
+        
+        for suit in self.pLengths:
+            total_len = self.hand.sLengths[suit] + self.pLengths[suit][0]
+            if self.pLengths[suit][0] >= 5 and total_len >= 8:
+                longSuit = suit
+                
+        if longSuit == 'NT':
+            for suit in self.pLengths:
+                if self.hand.sLengths[suit] >= 5 and self.pLengths[suit][1] >=3:
+                    longSuit = suit
+        
+        #bid higher tricks unless suit is higher; bids must increase
+        for suit in bidOrder:
+            if suit == longSuit:
+                tricks += 1
+                break
+            if suit == lastbid[1]:
+                break
+                
+        return [tricks, suit]
     
     def getOpenSuit(self):
         if self.hand.sLengths['S'] >= 5 and self.hand.sLengths['H'] <= self.hand.sLengths['S']:
             return 'S'
         elif self.hand.sLengths['H'] >= 5:
             return 'H'
-        elif self.hand.sLengths['D'] >= self.hand.shape['C']:
+        elif self.hand.sLengths['D'] >= self.hand.sLengths['C']:
             return 'D'
         else:
             return 'C'
