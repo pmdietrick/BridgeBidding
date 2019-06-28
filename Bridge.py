@@ -1,14 +1,41 @@
 import random
+import matplotlib.pyplot as plt
 
 def main():
     dataX = []
     dataY = []
-    iterations = 10000
+    iterations = 2000
+    
+    openersX = {}
+    openersY = {}
+    openers = ['1 C', '1 D', '1 H', '1 S', '1 N', '2 C', '2 D', '2 H', '2 S', '2 N']
+    for bid in openers:
+        openersX[bid] = []
+        openersY[bid] = []
+    
     for i in range(iterations):
-        rowX, rowY = newGame()
+        rowX, rowY, openingBid, score, openingHcp = newGame()
         dataX.append(rowX)
         dataY.append(rowY)
         
+        for bid in openers:
+            if bid == openingBid:
+                openersX[bid].append(openingHcp)
+                openersY[bid].append(score)
+    
+    fig = plt.figure(figsize=(16,10))
+    i=0
+    for bid in openers:
+        i += 1
+        plt.subplot(2, 5, i)
+        plt.scatter(openersX[bid], openersY[bid], alpha = .1)
+        plt.title(bid)
+        plt.xlabel('HCP')
+        plt.ylabel('Score')
+        
+    plt.show()
+    
+    
     with open('bids.txt', 'w') as filehandle:  
         filehandle.writelines("%s\n" % bid for bid in dataX)
     filehandle.close()
@@ -45,15 +72,33 @@ def newGame():
     
     bids = auction(south, north)
     
+    contract = bids[len(bids)-2]
+    if contract == [0, 'P']:
+        score = 0
+    else:
+        score = getScore(south.hand, north.hand, contract[1], contract[0])
+    
+    if bids[0] == [0, 'P']:
+        openingBid = bids[1]
+        openingHcp = north.hand.hcp
+    else:
+        openingBid = bids[0]
+        openingHcp = south.hand.hcp
+    openingBid[0] = str(openingBid[0])
+    openingBid = ' '.join(openingBid)
+    print("open", openingBid, openingHcp)
+    
+    #file output
     while len(bids) < 10:
         bids.append([0, 'P'])
     while len(bids) > 10:
         bids.pop()
-        
     features = [south.hand.hcp, south.hand.clubs, south.hand.diamonds, south.hand.hearts, south.hand.spades]
-    
-    return bids, features
+    return bids, features, openingBid, score, openingHcp
 
+def getScore(hand1, hand2, trump, tricks):
+    score = hand1.hcp + hand2.hcp
+    return score
 
 def auction(south, north):
     bid = [-1, 0]
