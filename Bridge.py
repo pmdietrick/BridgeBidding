@@ -57,7 +57,14 @@ class Bidder(object):
     
     def __init__(self, hand):
         self.hand = hand
+        #hcp range
         self.pRange = [0, 40 - self.hand.hcp]
+        #suit range
+        self.pS = [0, 13]
+        self.pH = [0, 13]
+        self.pD = [0, 13]
+        self.pC = [0, 13]
+        self.pLengths = {'C' : self.pC, 'D' : self.pD, 'H' : self.pH, 'S' : self.pS}
         self.NT_OPEN = True
         self.pts = self.points()
         self.pBids = []
@@ -67,34 +74,78 @@ class Bidder(object):
         self.pBids.append(bid)
         #todo: update pRange according to the constraints of the bid
     
-    def bid(self):
+    def bid(self, lastBid):
         hcp = self.hand.hcp
+        hcpMin = self.getHcpMin()
         SUITS = ['C', 'D', 'H', 'S']
         bid = "pass"
         
         
         #opening bids
-        if self.pBids == []:
-            if self.pts >= 23:
-                bid = [2, 'C']
-            elif hcp >=15 and hcp <= 17 and self.NT_OPEN:
+        if self.nonpassBids(self.pBids) == 0:
+            if hcp >=15 and hcp <= 17 and self.NT_OPEN:
                 bid = [1, 'NT']
             elif hcp >=20 and hcp <= 22 and self.NT_OPEN:
                 bid = [2, 'NT']
-            elif hcp >=11 and hcp <= 21:
-                if self.hand.sLengths['S'] >= 5 and self.hand.sLengths['H'] <= self.hand.sLengths['S']:
-                    bid = [1, 'S']
-                elif self.hand.sLengths['H'] >= 5:
-                    bid = [1, 'H']
-                elif self.hand.sLengths['D'] >= self.hand.shape['C']:
-                    bid = [1, 'D']
-                else:
-                    bid = [1, 'C']
+            elif hcp >= 20:
+                tricks = 2
+                suit = self.getOpenSuit()
+                bid = [tricks, suit]
+            #5 card major, longest suit
+            elif hcp >=11 and hcp <= 19:
+                tricks = 1
+                suit = self.getOpenSuit()
+                bid = [tricks, suit]
                     
-        
+        #first responses
+        elif self.nonpassBids(self.bids) == 0:
+            if hcp >= 12 and hcp <= 16:
+                bid = self.jump(lastBid)
+            elif hcp >= 17:
+                bid = self.dbljump(lastBid)
+            elif hcp >= 5 or hcpMin >= 22:
+                bid = self.respond(lastBid)
+        #responses
+        else:
+            bid = self.respond(lastBid)
+            if hcpMin >= 17 and hcpMin <= 19:
+                maxBid = 2
+            elif hcpMin >= 20 and hcpMin <= 22:
+                maxBid = 3
+            elif hcpMin >= 23 and hcpMin <= 28:
+                maxBid = 4
+            elif hcpMin >= 29 and hcpMin <= 32:
+                maxBid = 5
+            elif hcpMin >= 33 and hcpMin <= 36:
+                maxBid = 6
+            elif hcpMin >= 37:
+                maxBid = 7
+                
+            if bid[0] <= maxBid:
+                self.bids.append(bid)
+                return bid
+            else:
+                bid = "pass"
+                self.bids.append(bid)
+                return bid
+            
         self.bids.append(bid)
         return bid
     
+    def respond(lastbid):
+        bidOrder = ['C', 'D', 'H', 'S', 'NT']
+    
+    def getOpenSuit(self):
+        if self.hand.sLengths['S'] >= 5 and self.hand.sLengths['H'] <= self.hand.sLengths['S']:
+            return 'S'
+        elif self.hand.sLengths['H'] >= 5:
+            return 'H'
+        elif self.hand.sLengths['D'] >= self.hand.shape['C']:
+            return 'D'
+        else:
+            return 'C'
+            
+        
     def points(self):
         SUITS = ['C', 'D', 'H', 'S']
         self.pts = self.hand.hcp
@@ -105,7 +156,16 @@ class Bidder(object):
             if self.hand.sLengths[suit] <= 1 or self.hand.sLengths[suit] >= 6:
                 self.NT_OPEN = False
     
-
+    def getHcpMin(self):
+        return self.hand.hcp + self.pRange[0]
+    
+    def nonpassBids(self, bids):
+        count = 0
+        for bid in bids:
+            if bid != "pass":
+                count += 1
+        return 0
+    
 
 class Hand(object):
 
