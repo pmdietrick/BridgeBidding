@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 def main():
     dataX = []
     dataY = []
-    iterations = 2000
+    iterations = 1000
     
     openersX = {}
     openersY = {}
-    openers = ['1 C', '1 D', '1 H', '1 S', '1 N', '2 C', '2 D', '2 H', '2 S', '2 N']
+    #openers = ['1 C', '1 D', '1 H', '1 S', '1 N', '2 C', '2 D', '2 H', '2 S', '2 N']
+    openers = ['1 C', '1 D', '1 H', '1 S', '1 N']
     for bid in openers:
         openersX[bid] = []
         openersY[bid] = []
@@ -27,7 +28,7 @@ def main():
     i=0
     for bid in openers:
         i += 1
-        plt.subplot(2, 5, i)
+        plt.subplot(2, 3, i)
         plt.scatter(openersX[bid], openersY[bid], alpha = .1)
         plt.title(bid)
         plt.xlabel('HCP')
@@ -97,7 +98,34 @@ def newGame():
     return bids, features, openingBid, score, openingHcp
 
 def getScore(hand1, hand2, trump, tricks):
-    score = hand1.hcp + hand2.hcp
+    hcp = hand1.hcp + hand2.hcp
+    tricksWon = round(hcp/3 + random.random())
+    if trump == 'N':
+        score = 30*(tricksWon-6) + 10
+        gamescore = 30*min(tricksWon-6, tricks) + 10
+    elif trump == 'S' or trump == 'H':
+        ruffs = hand1.sLengths[trump] + hand2.sLengths[trump] - 7
+        tricksWon += ruffs
+        score = 30*(tricksWon-6)
+        gamescore = 30*min(tricksWon-6, tricks)
+    else:
+        ruffs = hand1.sLengths[trump] + hand2.sLengths[trump] - 7
+        tricksWon += ruffs
+        score = 20*(tricksWon-6)
+        gamescore = 10*min(tricksWon-6, tricks)
+        
+    if tricksWon < (tricks + 6):
+        score = -50 * (tricks + 6 - tricksWon)
+        
+    if score >= 100 and gamescore >= 100:
+        score += 100
+        
+    if tricksWon >= 12 and tricks >= 12:
+        score += 500
+        
+    if tricksWon == 13 and tricks == 13:
+        score += 250
+        
     return score
 
 def auction(south, north):
