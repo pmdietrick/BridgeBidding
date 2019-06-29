@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 def main():
     dataX = []
     dataY = []
-    iterations = 1000
+    iterations = 2000
+    totalScore = 0
     
     openersX = {}
     openersY = {}
@@ -18,6 +19,7 @@ def main():
         rowX, rowY, openingBid, score, openingHcp = newGame()
         dataX.append(rowX)
         dataY.append(rowY)
+        totalScore += score
         
         for bid in openers:
             if bid == openingBid:
@@ -36,6 +38,10 @@ def main():
         
     plt.show()
     
+    for bid in openers:
+        averageScore = sum(openersY[bid]) / len(openersY[bid])
+        print("Average score of ", bid, " opening: ", round(averageScore))
+    print("Average score of", round(totalScore / iterations))
     
     with open('bids.txt', 'w') as filehandle:  
         filehandle.writelines("%s\n" % bid for bid in dataX)
